@@ -3,11 +3,9 @@ using UI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Servicios de Blazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// ✅ REGISTRAR AQUÍ
 builder.Services.AddScoped<Repository.MateriaRepository>();
 builder.Services.AddScoped<Services.MateriaService>();
 var app = builder.Build();
