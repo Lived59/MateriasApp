@@ -1,214 +1,370 @@
-@page "/materias"
+@page "/"
 @using Domain.Entities
 @using Domain.Enums
-@inject Repository.MateriaRepository repo
+@using Repository
+@using Services
+@inject MateriaRepository repo
+@inject MateriaService materiaService
 @rendermode InteractiveServer
-<h1 class="titulo">Malla de Materias</h1>
 
 @if (semestres == null)
 {
-    <div class="loading">
-        <p>Cargando malla curricular...</p>
-    </div>
+    <div class="spinner">Cargando malla curricular...</div>
 }
 else
 {
-    <div class="contenedor-principal">
-        
-        @* Sección Izquierda: La Malla *@
-        <div class="malla-scroll">
-            <div class="malla-grid">
-                @foreach (var semestre in semestres)
+<div class="user-bar">
+    <div class="user-card">
+        <i class="fas fa-user-graduate"></i>
+        <div>
+            <span class="label">Estudiante</span>
+            <span class="value">@usuarioActual.Nombre</span>
+        </div>
+    </div>
+    <div class="user-card">
+        <i class="fas fa-star"></i>
+        <div>
+            <span class="label">Créditos Totales</span>
+            <span class="value">@usuarioActual.ObtenerCreditosTotales()</span>
+        </div>
+    </div>
+</div>
+
+<div class="contenedor-principal">
+
+    <div class="malla-wrapper">
+        <div class="malla-grid">
+            @foreach (var semestre in semestres)
+            {
+            <div class="semestre-col">
+                <h3 class="semestre-titulo">Semestre @semestre.Numero</h3>
+
+                @foreach (var materia in semestre.Materias)
                 {
-                    <div class="semestre">
-                        <h3>Semestre @semestre.Numero</h3>
-                        <div class="lista-materias">
-                            @foreach (var materia in semestre.Materias)
+                    var puedeCursar = materiaService.PuedeCursar(materia, usuarioActual);
+    
+                    <div class="materia-card @materia.Estado.ToString().ToLower() @(materia == materiaSeleccionada ? "seleccionada" : "")"
+                         @onclick="() => SeleccionarMateria(materia)">
+        
+                        <div class="materia-indicador">
+                            @if (materia.Estado == EstadoMateria.AprobadaTotal)
                             {
-                                <div class="materia-card @(materia == materiaSeleccionada ? "activa" : "")"
-                                     @onclick="() => SeleccionarMateria(materia)">
-                                    @materia.Nombre
-                                </div>
+                                <span title="Aprobada Total">✅</span> 
                             }
+                            else if (materia.Estado == EstadoMateria.AprobadaParcial)
+                            {
+                                <span title="Aprobada Parcial">⏳</span>
+                            }
+                            else if (materia.Estado == EstadoMateria.Cursando)
+                            {
+                                <span title="Cursando">📘</span>
+                            }
+                            else if (puedeCursar)
+                            {
+                                <span title="Disponible">⭐</span>
+                            }
+                            else
+                            {
+                                <span title="Bloqueada">🔒</span>
+                            }
+                        </div>
+
+                        <div class="materia-contenido">
+                            <div class="materia-nombre">@materia.Nombre</div>
+                            <div class="materia-detalles">Dif: @materia.Dificultad</div>
                         </div>
                     </div>
                 }
             </div>
-        </div>
-
-        @* Sección Derecha: Detalle (Solo aparece si hay selección) *@
-        <div class="detalle-contenedor">
-            @if (materiaSeleccionada != null)
-            {
-                <div class="detalle-card">
-                    <button class="btn-cerrar" @onclick="() => materiaSeleccionada = null">✕</button>
-                    <h2>@materiaSeleccionada.Nombre</h2>
-                    <hr />
-                    
-                    <p class="descripcion">@materiaSeleccionada.Descripcion</p>
-
-                    <h4>Previas</h4>
-                    @if (materiaSeleccionada.Previas == null || !materiaSeleccionada.Previas.Any())
-                    {
-                        <p class="sin-datos">No tiene previas registradas.</p>
-                    }
-                    else
-                    {
-                        <ul class="lista-previas">
-                            @foreach (var previa in materiaSeleccionada.Previas)
-                            {
-                                <li>
-                                    @previa.MateriaPrevia.Nombre
-                                    <span class="@(previa.TipoCredito == TipoCreditoPrevia.Total ? "badge-total" : "badge-parcial")">
-                                        @(previa.TipoCredito == TipoCreditoPrevia.Total ? "Total" : "Parcial")
-                                    </span>
-                                </li>
-                            }
-                        </ul>
-                    }
-
-                    <div class="info-extra">
-                        <p><b>Créditos:</b> @materiaSeleccionada.CreditosNecesarios</p>
-                        <p><b>Dificultad:</b> <span class="dificultad-valor">@materiaSeleccionada.Dificultad</span></p>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="aviso-seleccion">
-                    <p>Selecciona una materia para ver su detalle</p>
-                </div>
             }
         </div>
-
     </div>
+    <div class="panel-detalle">
+        @if (materiaSeleccionada != null)
+        {
+        <div class="detalle-content">
+            <h3>@materiaSeleccionada.Nombre</h3>
+            <p class="descripcion">@materiaSeleccionada.Descripcion</p>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="label">Necesita créditos</span>
+                    <span class="value">@materiaSeleccionada.CreditosNecesarios</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Dificultad</span>
+                    <span class="value">@materiaSeleccionada.Dificultad/10</span>
+                </div>
+            </div>
+            @if (materiaSeleccionada.Previas.Any())
+            {
+            <div class="previas-section">
+                <h4>Materias Previas:</h4>
+                <ul>
+                    @foreach (var p in materiaSeleccionada.Previas)
+                    {
+                    <li class="@(p.MateriaPrevia.Estado >= (p.TipoCredito == TipoCreditoPrevia.Total ? EstadoMateria.AprobadaTotal : EstadoMateria.AprobadaParcial) ? "cumplida" : "pendiente")">
+                        @p.MateriaPrevia.Nombre (@p.TipoCredito)
+                    </li>
+                    }
+                </ul>
+            </div>
+            }
+
+            <div class="estado-selector">
+                <label>Estado de @materiaSeleccionada.Nombre:</label>
+    
+                @* El @key es el truco mágico aquí *@
+                <select @key="materiaSeleccionada.Nombre" 
+                        class="form-control" 
+                        @onchange="OnEstadoChanged">
+        
+                    @foreach (EstadoMateria est in Enum.GetValues(typeof(EstadoMateria)))
+                    {
+                        @* Usamos 'value' y 'selected' manualmente para asegurar sincronía *@
+                        <option value="@est" selected="@(materiaSeleccionada.Estado == est)">
+                            @est.ToString()
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+        }
+        else
+        {
+        <div class="empty-state">
+            <i class="fas fa-mouse-pointer"></i>
+            <p>Selecciona una materia para ver requisitos y cambiar estado</p>
+        </div>
+        }
+    </div>
+</div>
 }
 
 @code {
     private List<Semestre> semestres;
     private Materia materiaSeleccionada;
+    private Usuario usuarioActual;
 
     protected override void OnInitialized()
     {
-        // Nota: Si ObtenerSemestres es asíncrono, usa OnInitializedAsync y await
         semestres = repo.ObtenerSemestres();
+        usuarioActual = new Usuario("Estudiante de Ingeniería");
+
+
+        foreach (var s in semestres)
+        {
+            foreach (var m in s.Materias)
+            {
+                usuarioActual.Materias.Add(m);
+            }
+        }
     }
 
-    void SeleccionarMateria(Materia materia)
+    private void SeleccionarMateria(Materia m) => materiaSeleccionada = m;
+
+    private void OnEstadoChanged(ChangeEventArgs e)
     {
-        if (materia == null) return;
-    
-        // Asignamos una nueva referencia para asegurar que Blazor detecte el cambio
-        materiaSeleccionada = materia;
-    
-        // Forzamos la notificación de cambio de estado
-        this.StateHasChanged(); 
+        if (Enum.TryParse<EstadoMateria>(e.Value?.ToString(), out var nuevoEstado))
+        {
+            // Regla: No se puede pasar a un estado de avance si no cumple requisitos
+            if (nuevoEstado != EstadoMateria.NoCursada)
+            {
+                if (!materiaService.PuedeCursar(materiaSeleccionada, usuarioActual))
+                {
+                    // Si no puede, forzamos el renderizado para que el select 
+                    // vuelva a mostrar el estado anterior (NoCursada)
+                    StateHasChanged(); 
+                    return;
+                }
+            }
+
+            materiaSeleccionada.CambiarEstado(nuevoEstado);
+        
+            // Al cambiar el estado de una materia, recalculamos todo el mapa 
+            // para actualizar candados de otras materias dependientes.
+            StateHasChanged();
+        }
     }
+
 }
-
 <style>
-    /* Estructura Principal */
-    .contenedor-principal {
-        display: grid;
-        grid-template-columns: 1fr 350px; /* La malla ocupa el resto, el detalle 350px fijo */
-        gap: 25px;
-        align-items: flex-start;
-        height: 80vh;
+    :root {
+        --bg-color: #f4f7f6;
+        --card-bg: #ffffff;
+        --border-color: #e0e6ed;
+        --primary-blue: #007bff;
+        --success-green: #28a745;
+        --warning-yellow: #ffc107;
     }
 
-    /* Malla con Scroll Horizontal por si hay muchos semestres */
-    .malla-scroll {
-        overflow-x: auto;
-        padding-bottom: 20px;
+    .user-bar {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
     }
 
-    .malla-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 220px); /* 5 columnas fijas */
+    .user-card {
+        background: #343a40;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
         gap: 15px;
     }
 
-    /* Estilo de Semestres */
-    .semestre {
-        background: #f8f9fa;
+    .user-card i { font-size: 1.5rem; color: var(--warning-yellow); }
+    .user-card .label { display: block; font-size: 0.75rem; opacity: 0.8; }
+    .user-card .value { font-weight: bold; font-size: 1.1rem; }
+
+    .contenedor-principal {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .malla-wrapper {
+        overflow-x: auto;
+        background: var(--bg-color);
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .malla-grid {
+        display: flex;
+        gap: 15px;
+    }
+
+    .semestre-col {
+        min-width: 220px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .semestre-titulo {
+        text-align: center;
+        font-size: 1rem;
+        background: #e9ecef;
+        padding: 8px;
+        border-radius: 5px;
+        color: #495057;
+    }
+
+    .materia-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 10px;
         border-radius: 8px;
-        padding: 12px;
-        border: 1px solid #eee;
-    }
-
-    .semestre h3 {
-        font-size: 1.1rem;
-        color: #333;
-        border-bottom: 2px solid #007bff;
-        padding-bottom: 5px;
-        margin-bottom: 10px;
-    }
-
-    /* Tarjetas de Materia */
-    .materia-card {
-        background: white;
-        padding: 12px;
-        margin-bottom: 10px;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
+        display: flex;
+        gap: 10px;
         cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.9rem;
+        transition: all 0.2s;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
-    .materia-card:hover {
-        background: #f0f7ff;
-        border-color: #007bff;
-        transform: translateY(-2px);
-    }
+    .materia-item:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .materia-item.selected { border: 2px solid var(--primary-blue); background: #f0f7ff; }
 
-    .materia-card.activa {
-        background: #e7f1ff;
-        border-color: #007bff;
-        font-weight: bold;
-        box-shadow: 0 0 8px rgba(0,123,255,0.2);
-    }
+    /* ESTADOS - REGLAS 8, 9, 11 */
+    .materia-item.aprobadatotal { border-left: 5px solid var(--success-green); background: #f1fbf3; }
+    .materia-item.aprobadaparcial { border-left: 5px solid var(--warning-yellow); background: #fffcf5; }
+    .materia-item.cursando { border-left: 5px solid var(--primary-blue); background: #f0f7ff; }
 
-    /* Panel de Detalle (Fijo a la derecha) */
-    .detalle-contenedor {
-        position: sticky;
-        top: 20px;
-    }
+    .status-icon { font-size: 1.2rem; display: flex; align-items: center; }
+    .materia-info { display: flex; flex-direction: column; }
+    .materia-nombre { font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+    .materia-meta { font-size: 0.7rem; color: #6c757d; margin-top: 4px; }
 
-    .detalle-card {
+
+    /* Estilo base del botón/tarjeta */
+    .materia-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         background: white;
-        padding: 25px;
-        border-radius: 12px;
         border: 1px solid #ddd;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-height: 65px;
         position: relative;
     }
 
-    .btn-cerrar {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #999;
+    /* REGLA 11: Aprobada Total (Verde) */
+    .materia-card.aprobadatotal {
+        background-color: #d4edda !important;
+        border-color: #c3e6cb;
     }
 
-    .aviso-seleccion {
-        padding: 40px;
-        text-align: center;
-        border: 2px dashed #ccc;
-        border-radius: 12px;
-        color: #777;
+    /* REGLA 8: Aprobada Parcial (Amarillo) */
+    .materia-card.aprobadaparcial {
+        background-color: #fff3cd !important;
+        border-color: #ffeeba;
     }
 
-    /* Badges de Previas */
-    .badge-total { color: #dc3545; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
-    .badge-parcial { color: #28a745; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
+    /* REGLA 9: Cursando (Azul) */
+    .materia-card.cursando {
+        background-color: #cce5ff !important;
+        border-color: #b8daff;
+        border-style: dashed; /* Para diferenciar que es un proceso */
+    }
 
-    .lista-previas { padding-left: 20px; margin-top: 10px; }
-    .descripcion { color: #555; line-height: 1.4; }
-    
-    
+    /* Efecto al seleccionar */
+    .materia-card.seleccionada {
+        box-shadow: 0 0 0 3px #007bff;
+        transform: scale(1.02);
+        z-index: 10;
+    }
+
+    /* Tamaño del emoji en el botón */
+    .materia-indicador {
+        font-size: 1.4rem;
+        min-width: 30px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .materia-nombre {
+        font-weight: 600;
+        font-size: 0.85rem;
+        line-height: 1.1;
+        color: #333;
+    }
+
+    .materia-detalles {
+        font-size: 0.7rem;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    /* PANEL DETALLE */
+    .panel-detalle {
+        background: white;
+        border-radius: 15px;
+        border: 1px solid var(--border-color);
+        padding: 25px;
+        position: sticky;
+        top: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+    .stat-item { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; }
+    .stat-item .label { display: block; font-size: 0.7rem; color: #6c757d; }
+    .stat-item .value { font-weight: bold; }
+
+    .previas-section ul { list-style: none; padding: 0; }
+    .previas-section li { font-size: 0.85rem; padding: 5px 0; }
+    .previas-section li.cumplida { color: var(--success-green); }
+    .previas-section li.pendiente { color: #dc3545; }
+
+    .estado-selector { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
+    .estado-selector label { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; display: block; }
+
+    .empty-state { text-align: center; color: #adb5bd; padding: 40px 0; }
+    .empty-state i { font-size: 3rem; margin-bottom: 15px; }
 </style>
