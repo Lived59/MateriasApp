@@ -9,7 +9,7 @@
 
 @if (semestres == null)
 {
-    <div class="spinner">Cargando malla curricular...</div>
+    <div class="spinner">Cargando...</div>
 }
 else
 {
@@ -114,14 +114,12 @@ else
             <div class="estado-selector">
                 <label>Estado de @materiaSeleccionada.Nombre:</label>
     
-                @* El @key es el truco mágico aquí *@
                 <select @key="materiaSeleccionada.Nombre" 
                         class="form-control" 
                         @onchange="OnEstadoChanged">
         
                     @foreach (EstadoMateria est in Enum.GetValues(typeof(EstadoMateria)))
                     {
-                        @* Usamos 'value' y 'selected' manualmente para asegurar sincronía *@
                         <option value="@est" selected="@(materiaSeleccionada.Estado == est)">
                             @est.ToString()
                         </option>
@@ -149,7 +147,7 @@ else
     protected override void OnInitialized()
     {
         semestres = repo.ObtenerSemestres();
-        usuarioActual = new Usuario("Estudiante de Ingeniería");
+        usuarioActual = new Usuario("Francisco Menchaca");
 
 
         foreach (var s in semestres)
@@ -167,22 +165,16 @@ else
     {
         if (Enum.TryParse<EstadoMateria>(e.Value?.ToString(), out var nuevoEstado))
         {
-            // Regla: No se puede pasar a un estado de avance si no cumple requisitos
             if (nuevoEstado != EstadoMateria.NoCursada)
             {
                 if (!materiaService.PuedeCursar(materiaSeleccionada, usuarioActual))
                 {
-                    // Si no puede, forzamos el renderizado para que el select 
-                    // vuelva a mostrar el estado anterior (NoCursada)
                     StateHasChanged(); 
                     return;
                 }
             }
 
             materiaSeleccionada.CambiarEstado(nuevoEstado);
-        
-            // Al cambiar el estado de una materia, recalculamos todo el mapa 
-            // para actualizar candados de otras materias dependientes.
             StateHasChanged();
         }
     }
@@ -268,7 +260,6 @@ else
     .materia-item:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .materia-item.selected { border: 2px solid var(--primary-blue); background: #f0f7ff; }
 
-    /* ESTADOS - REGLAS 8, 9, 11 */
     .materia-item.aprobadatotal { border-left: 5px solid var(--success-green); background: #f1fbf3; }
     .materia-item.aprobadaparcial { border-left: 5px solid var(--warning-yellow); background: #fffcf5; }
     .materia-item.cursando { border-left: 5px solid var(--primary-blue); background: #f0f7ff; }
@@ -279,7 +270,6 @@ else
     .materia-meta { font-size: 0.7rem; color: #6c757d; margin-top: 4px; }
 
 
-    /* Estilo base del botón/tarjeta */
     .materia-card {
         display: flex;
         align-items: center;
@@ -294,33 +284,28 @@ else
         position: relative;
     }
 
-    /* REGLA 11: Aprobada Total (Verde) */
     .materia-card.aprobadatotal {
         background-color: #d4edda !important;
         border-color: #c3e6cb;
     }
 
-    /* REGLA 8: Aprobada Parcial (Amarillo) */
     .materia-card.aprobadaparcial {
         background-color: #fff3cd !important;
         border-color: #ffeeba;
     }
 
-    /* REGLA 9: Cursando (Azul) */
     .materia-card.cursando {
         background-color: #cce5ff !important;
         border-color: #b8daff;
         border-style: dashed; /* Para diferenciar que es un proceso */
     }
 
-    /* Efecto al seleccionar */
     .materia-card.seleccionada {
         box-shadow: 0 0 0 3px #007bff;
         transform: scale(1.02);
         z-index: 10;
     }
 
-    /* Tamaño del emoji en el botón */
     .materia-indicador {
         font-size: 1.4rem;
         min-width: 30px;

@@ -1,13 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
-
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            @* Aquí podrías poner un botón de Logout o ajustes, o dejarlo vacío *@
+            <strong class="brand-logo">🎓 Ingeniería en Sistemas</strong>
         </div>
 
         <article class="content px-4">
@@ -21,3 +18,37 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+<style>
+    /* Estilos para limpiar el layout por defecto */
+    .top-row {
+        height: 3.5rem;
+        background-color: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .brand-logo {
+        color: #4361ee;
+        font-size: 1.2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .content {
+        padding-top: 1.5rem;
+    }
+
+    /* Ocultar el NavMenu lateral si aún existe en el HTML */
+    .sidebar {
+        display: none !important;
+    }
+
+    main {
+        flex: 1;
+    }
+</style>
