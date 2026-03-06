@@ -1,0 +1,74 @@
+@using Domain.Entities
+@using Domain.Enums
+@using Services
+<div class="materia-card">
+
+    <h4>@Materia.Nombre</h4>
+
+    <p>@Materia.Descripcion</p>
+
+    <div class="estado">
+
+        @if (!puedeCursar)
+        {
+            <span>🔒</span>
+        }
+        else if (Materia.Estado == EstadoMateria.NoCursada)
+        {
+            <span>🔓</span>
+        }
+        else if (Materia.Estado == EstadoMateria.Cursando)
+        {
+            <span class="azul">🔵</span>
+        }
+        else if (Materia.Estado == EstadoMateria.AprobadaParcial)
+        {
+            <span class="amarillo">🟡⏳</span>
+        }
+        else if (Materia.Estado == EstadoMateria.AprobadaTotal)
+        {
+            <span class="verde">🟢✔</span>
+        }
+
+    </div>
+
+    <button @onclick="CambiarEstado">
+        Cambiar estado
+    </button>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public Materia Materia { get; set; }
+
+    [Parameter]
+    public Usuario Usuario { get; set; }
+
+    [Inject]
+    public MateriaService MateriaService { get; set; }
+
+    bool puedeCursar;
+
+    protected override void OnParametersSet()
+    {
+        puedeCursar = MateriaService.PuedeCursar(Materia, Usuario);
+    }
+
+    void CambiarEstado()
+    {
+        if (Materia.Estado == EstadoMateria.NoCursada)
+            Materia.CambiarEstado(EstadoMateria.Cursando);
+
+        else if (Materia.Estado == EstadoMateria.Cursando)
+            Materia.CambiarEstado(EstadoMateria.AprobadaParcial);
+
+        else if (Materia.Estado == EstadoMateria.AprobadaParcial)
+            Materia.CambiarEstado(EstadoMateria.AprobadaTotal);
+
+        else
+            Materia.CambiarEstado(EstadoMateria.NoCursada);
+    }
+
+}

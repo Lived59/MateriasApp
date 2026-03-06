@@ -1,0 +1,214 @@
+@page "/materias"
+@using Domain.Entities
+@using Domain.Enums
+@inject Repository.MateriaRepository repo
+@rendermode InteractiveServer
+<h1 class="titulo">Malla de Materias</h1>
+
+@if (semestres == null)
+{
+    <div class="loading">
+        <p>Cargando malla curricular...</p>
+    </div>
+}
+else
+{
+    <div class="contenedor-principal">
+        
+        @* Sección Izquierda: La Malla *@
+        <div class="malla-scroll">
+            <div class="malla-grid">
+                @foreach (var semestre in semestres)
+                {
+                    <div class="semestre">
+                        <h3>Semestre @semestre.Numero</h3>
+                        <div class="lista-materias">
+                            @foreach (var materia in semestre.Materias)
+                            {
+                                <div class="materia-card @(materia == materiaSeleccionada ? "activa" : "")"
+                                     @onclick="() => SeleccionarMateria(materia)">
+                                    @materia.Nombre
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Sección Derecha: Detalle (Solo aparece si hay selección) *@
+        <div class="detalle-contenedor">
+            @if (materiaSeleccionada != null)
+            {
+                <div class="detalle-card">
+                    <button class="btn-cerrar" @onclick="() => materiaSeleccionada = null">✕</button>
+                    <h2>@materiaSeleccionada.Nombre</h2>
+                    <hr />
+                    
+                    <p class="descripcion">@materiaSeleccionada.Descripcion</p>
+
+                    <h4>Previas</h4>
+                    @if (materiaSeleccionada.Previas == null || !materiaSeleccionada.Previas.Any())
+                    {
+                        <p class="sin-datos">No tiene previas registradas.</p>
+                    }
+                    else
+                    {
+                        <ul class="lista-previas">
+                            @foreach (var previa in materiaSeleccionada.Previas)
+                            {
+                                <li>
+                                    @previa.MateriaPrevia.Nombre
+                                    <span class="@(previa.TipoCredito == TipoCreditoPrevia.Total ? "badge-total" : "badge-parcial")">
+                                        @(previa.TipoCredito == TipoCreditoPrevia.Total ? "Total" : "Parcial")
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
+
+                    <div class="info-extra">
+                        <p><b>Créditos:</b> @materiaSeleccionada.CreditosNecesarios</p>
+                        <p><b>Dificultad:</b> <span class="dificultad-valor">@materiaSeleccionada.Dificultad</span></p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="aviso-seleccion">
+                    <p>Selecciona una materia para ver su detalle</p>
+                </div>
+            }
+        </div>
+
+    </div>
+}
+
+@code {
+    private List<Semestre> semestres;
+    private Materia materiaSeleccionada;
+
+    protected override void OnInitialized()
+    {
+        // Nota: Si ObtenerSemestres es asíncrono, usa OnInitializedAsync y await
+        semestres = repo.ObtenerSemestres();
+    }
+
+    void SeleccionarMateria(Materia materia)
+    {
+        if (materia == null) return;
+    
+        // Asignamos una nueva referencia para asegurar que Blazor detecte el cambio
+        materiaSeleccionada = materia;
+    
+        // Forzamos la notificación de cambio de estado
+        this.StateHasChanged(); 
+    }
+}
+
+<style>
+    /* Estructura Principal */
+    .contenedor-principal {
+        display: grid;
+        grid-template-columns: 1fr 350px; /* La malla ocupa el resto, el detalle 350px fijo */
+        gap: 25px;
+        align-items: flex-start;
+        height: 80vh;
+    }
+
+    /* Malla con Scroll Horizontal por si hay muchos semestres */
+    .malla-scroll {
+        overflow-x: auto;
+        padding-bottom: 20px;
+    }
+
+    .malla-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 220px); /* 5 columnas fijas */
+        gap: 15px;
+    }
+
+    /* Estilo de Semestres */
+    .semestre {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #eee;
+    }
+
+    .semestre h3 {
+        font-size: 1.1rem;
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+
+    /* Tarjetas de Materia */
+    .materia-card {
+        background: white;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .materia-card:hover {
+        background: #f0f7ff;
+        border-color: #007bff;
+        transform: translateY(-2px);
+    }
+
+    .materia-card.activa {
+        background: #e7f1ff;
+        border-color: #007bff;
+        font-weight: bold;
+        box-shadow: 0 0 8px rgba(0,123,255,0.2);
+    }
+
+    /* Panel de Detalle (Fijo a la derecha) */
+    .detalle-contenedor {
+        position: sticky;
+        top: 20px;
+    }
+
+    .detalle-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .btn-cerrar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .aviso-seleccion {
+        padding: 40px;
+        text-align: center;
+        border: 2px dashed #ccc;
+        border-radius: 12px;
+        color: #777;
+    }
+
+    /* Badges de Previas */
+    .badge-total { color: #dc3545; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
+    .badge-parcial { color: #28a745; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
+
+    .lista-previas { padding-left: 20px; margin-top: 10px; }
+    .descripcion { color: #555; line-height: 1.4; }
+    
+    
+</style>
