@@ -14,12 +14,12 @@ namespace Domain.Entities
 
         public EstadoMateria Estado { get; private set; }
 
-        public Materia(string nombre, string descripcion, int creditos,
+        public Materia(string nombre, string descripcion,
             int creditosNecesarios, int dificultad)
         {
             Nombre = nombre;
             Descripcion = descripcion;
-            Creditos = creditos;
+            Creditos = 1;
             CreditosNecesarios = creditosNecesarios;
             Dificultad = dificultad;
 
