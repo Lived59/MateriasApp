@@ -113,11 +113,11 @@ else
 
             <div class="estado-selector">
                 <label>Estado de @materiaSeleccionada.Nombre:</label>
-    
-                <select @key="materiaSeleccionada.Nombre" 
-                        class="form-control" 
+                <select @key="materiaSeleccionada.Nombre"
+                        class="form-control"
                         @onchange="OnEstadoChanged">
-        
+                    
+
                     @foreach (EstadoMateria est in Enum.GetValues(typeof(EstadoMateria)))
                     {
                         <option value="@est" selected="@(materiaSeleccionada.Estado == est)">
@@ -125,6 +125,13 @@ else
                         </option>
                     }
                 </select>
+            </div>
+            
+            <div class="ver-profesores">
+                <NavLink class="btn-profesores"
+                         href="@($"/profesores/{materiaSeleccionada.Nombre}")">
+                    Ver Profesores
+                </NavLink>
             </div>
         </div>
         }
@@ -349,6 +356,25 @@ else
 
     .estado-selector { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
     .estado-selector label { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; display: block; }
+    .ver-Profesores { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
+    .ver-profesores{
+        margin-top:20px;
+    }
+
+    .btn-profesores{
+        background: linear-gradient(135deg,#4facfe,#00f2fe);
+        padding:12px 26px;
+        color:white;
+        border-radius:10px;
+        text-decoration:none;
+        font-weight:bold;
+        transition:0.3s;
+    }
+
+    .btn-profesores:hover{
+        transform:translateY(-3px);
+        box-shadow:0 6px 15px rgba(0,0,0,0.2);
+    }
 
     .empty-state { text-align: center; color: #adb5bd; padding: 40px 0; }
     .empty-state i { font-size: 3rem; margin-bottom: 15px; }
