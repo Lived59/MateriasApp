@@ -3,45 +3,80 @@
 @using Repository
 @inject ProfesorRepository Repo
 @inject NavigationManager Nav
-@rendermode InteractiveServer 
+@rendermode InteractiveServer
 
 <div class="form-container">
+
+    <NavLink href="@($"/profesores/{nombreMateria}")" class="btn-volver">
+        ← Volver
+    </NavLink>
+
     <h1>Agregar Profesor</h1>
     <p class="subtitulo">Registrar profesor para <b>@nombreMateria</b></p>
-@if (modeloProfesor != null)
+
+    @if (modeloProfesor != null)
     {
         <EditForm Model="modeloProfesor"
                   OnValidSubmit="GuardarProfesor"
                   FormName="formProfesor">
+
             <div class="form-group">
                 <label>Nombre del profesor</label>
-                <InputText class="form-input" @bind-Value="modeloProfesor.Nombre"/>
+                <InputText class="form-input"
+                           @bind-Value="modeloProfesor.Nombre"/>
             </div>
 
             <div class="form-group">
                 <label>Opinión del estudiante</label>
-                <InputTextArea class="form-input" @bind-Value="modeloProfesor.Opinion"/>
+                <InputTextArea class="form-input"
+                               @bind-Value="modeloProfesor.Opinion"/>
             </div>
 
             <div class="form-group">
-                <label>Puntaje (1 - 5)</label>
-                <InputNumber class="form-input" @bind-Value="modeloProfesor.Puntaje"/>
+                <label>Puntaje</label>
+
+                <div class="rating">
+
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        int estrella = i;
+
+                        <span class="estrella @(modeloProfesor.Puntaje >= estrella ? "activa" : "")"
+                              @onclick="() => SeleccionarPuntaje(estrella)">
+                            ⭐
+                        </span>
+                    }
+
+                </div>
+
             </div>
 
-            <button type="submit" class="btn-guardar">Guardar Profesor</button>
+            <button type="submit" class="btn-guardar">
+                Guardar Profesor
+            </button>
+
         </EditForm>
     }
+
 </div>
 
 @code {
+
     [Parameter]
     public string nombreMateria { get; set; }
+
     [SupplyParameterFromForm]
     public FormProfesor modeloProfesor { get; set; } = new();
 
     protected override void OnInitialized()
     {
         modeloProfesor ??= new();
+    }
+
+    void SeleccionarPuntaje(int valor)
+    {
+        modeloProfesor.Puntaje = valor;
+        StateHasChanged();
     }
 
     void GuardarProfesor()
@@ -56,6 +91,7 @@
         );
 
         Repo.AgregarProfesor(profesor);
+
         Nav.NavigateTo($"/profesores/{nombreMateria}");
     }
 
@@ -69,58 +105,166 @@
 
 <style>
 
+/* =====================================
+   CONTENEDOR FORMULARIO
+===================================== */
+
 .form-container{
-    max-width: 600px;
-    margin: auto;
-    padding: 40px;
+max-width:650px;
+margin:auto;
+padding:40px;
+
+background:rgba(255,255,255,0.9);
+backdrop-filter:blur(10px);
+
+border-radius:16px;
+
+box-shadow:0 15px 35px rgba(0,0,0,0.1);
 }
 
+/* =====================================
+   BOTON VOLVER
+===================================== */
+
+.btn-volver{
+display:inline-block;
+margin-bottom:20px;
+
+text-decoration:none;
+font-weight:600;
+
+color:#007bff;
+}
+
+/* =====================================
+   TITULOS
+===================================== */
+
 .form-container h1{
-    font-size: 30px;
-    margin-bottom: 5px;
+font-size:30px;
+margin-bottom:5px;
 }
 
 .subtitulo{
-    color: #6c757d;
-    margin-bottom: 30px;
+color:#6c757d;
+margin-bottom:30px;
+font-size:15px;
 }
 
+/* =====================================
+   GRUPOS DEL FORM
+===================================== */
+
 .form-group{
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
+display:flex;
+flex-direction:column;
+margin-bottom:22px;
 }
 
 .form-group label{
-    font-weight: 600;
-    margin-bottom: 8px;
+font-weight:600;
+margin-bottom:8px;
+font-size:14px;
 }
 
+/* =====================================
+   INPUTS
+===================================== */
+
 .form-input{
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 15px;
+
+padding:12px 14px;
+
+border-radius:10px;
+border:1px solid #ddd;
+
+font-size:15px;
+
+transition:all 0.2s;
 }
 
 .form-input:focus{
-    outline: none;
-    border-color: #007bff;
+
+outline:none;
+
+border-color:#4facfe;
+
+box-shadow:0 0 0 3px rgba(79,172,254,0.2);
+
 }
 
+textarea.form-input{
+min-height:90px;
+resize:vertical;
+}
+
+/* =====================================
+   RATING ESTRELLAS
+===================================== */
+
+.rating{
+font-size:32px;
+cursor:pointer;
+user-select:none;
+}
+
+.estrella{
+opacity:0.35;
+transition:0.2s;
+margin-right:5px;
+}
+
+.estrella:hover{
+transform:scale(1.2);
+}
+
+.estrella.activa{
+opacity:1;
+}
+
+/* =====================================
+   BOTON GUARDAR
+===================================== */
+
 .btn-guardar{
-    margin-top: 10px;
-    background: #007bff;
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
+
+margin-top:15px;
+
+background:linear-gradient(
+135deg,
+#4facfe,
+#00f2fe
+);
+
+color:white;
+
+padding:13px 25px;
+
+border:none;
+border-radius:10px;
+
+font-size:16px;
+font-weight:600;
+
+cursor:pointer;
+
+transition:all 0.25s;
 }
 
 .btn-guardar:hover{
-    background: #0056b3;
+
+transform:translateY(-2px);
+
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+
+}
+
+/* =====================================
+   EFECTO CARD
+===================================== */
+
+.form-container:hover{
+box-shadow:0 20px 45px rgba(0,0,0,0.15);
 }
 
 </style>
