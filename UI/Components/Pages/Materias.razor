@@ -42,9 +42,16 @@ else
                 @foreach (var materia in semestre.Materias)
                 {
                     var puedeCursar = materiaService.PuedeCursar(materia, usuarioActual);
+                    var esHija = materiaSeleccionada != null && 
+                                 materia.Previas.Any(p => p.MateriaPrevia.Nombre == materiaSeleccionada.Nombre);
     
-                    <div class="materia-card @materia.Estado.ToString().ToLower() @(materia == materiaSeleccionada ? "seleccionada" : "")"
-                         @onclick="() => SeleccionarMateria(materia)">
+                    var esPadre = materiaSeleccionada != null && 
+                                  materiaSeleccionada.Previas.Any(p => p.MateriaPrevia.Nombre == materia.Nombre);
+    
+                    <div class="materia-card @materia.Estado.ToString().ToLower() 
+                        @(materia == materiaSeleccionada ? "seleccionada" : "")
+                        @(esHija ? "efecto-desbloqueo" : "") 
+                        @(esPadre ? "efecto-requisito" : "")" @onclick="() => SeleccionarMateria(materia)">
         
                         <div class="materia-indicador">
                             @if (materia.Estado == EstadoMateria.AprobadaTotal)
@@ -378,4 +385,17 @@ else
 
     .empty-state { text-align: center; color: #adb5bd; padding: 40px 0; }
     .empty-state i { font-size: 3rem; margin-bottom: 15px; }
+
+
+    /* Color para las materias que habilitarás después */
+    .efecto-desbloqueo {
+        border: 2px solid #00ff88 !important;
+        box-shadow: 0 0 10px #00ff88;
+    }
+
+    /* Color para las materias que son requisito de la actual */
+    .efecto-requisito {
+        border: 2px dashed #ffcc00 !important;
+        background-color: rgba(255, 204, 0, 0.1);
+    }
 </style>
