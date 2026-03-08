@@ -102,7 +102,7 @@ namespace Repository
             var semestre6  = new Semestre(6);
             var da2 = new Materia("Diseño de Aplicaciones 2", "",  12, 9);
             var pr = new Materia("Programación de Redes","",   12, 6);
-            var taller2 = new Materia("Taller de ecnologia 2", " ", 12, 3);
+            var taller2 = new Materia("Taller de tecnologia 2", " ", 12, 3);
             var mach = new Materia("Machine Learning", "", 12, 7);
             var ISA1 = new Materia("Ingeniería de software ágil 1","",  12, 4);
             
@@ -114,7 +114,7 @@ namespace Repository
             taller2.Previas.Add(new Previa(A2, TipoCreditoPrevia.Total));
             taller2.Previas.Add(new Previa(taller1, TipoCreditoPrevia.Total));
             taller2.Previas.Add(new Previa(bd1, TipoCreditoPrevia.Total));
-            taller2.Previas.Add(new Previa(fisica, TipoCreditoPrevia.Total));
+            taller2.Previas.Add(new Previa(fisica, TipoCreditoPrevia.Parcial));
             taller2.Previas.Add(new Previa(redes, TipoCreditoPrevia.Total));
             taller2.Previas.Add(new Previa(da1, TipoCreditoPrevia.Total));
             mach.Previas.Add(new Previa(A1, TipoCreditoPrevia.Total));
