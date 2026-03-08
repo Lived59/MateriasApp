@@ -1,0 +1,126 @@
+@page "/agregar-profesor/{nombreMateria}"
+@using Domain.Entities
+@using Repository
+@inject ProfesorRepository Repo
+@inject NavigationManager Nav
+@rendermode InteractiveServer 
+
+<div class="form-container">
+    <h1>Agregar Profesor</h1>
+    <p class="subtitulo">Registrar profesor para <b>@nombreMateria</b></p>
+@if (modeloProfesor != null)
+    {
+        <EditForm Model="modeloProfesor"
+                  OnValidSubmit="GuardarProfesor"
+                  FormName="formProfesor">
+            <div class="form-group">
+                <label>Nombre del profesor</label>
+                <InputText class="form-input" @bind-Value="modeloProfesor.Nombre"/>
+            </div>
+
+            <div class="form-group">
+                <label>Opinión del estudiante</label>
+                <InputTextArea class="form-input" @bind-Value="modeloProfesor.Opinion"/>
+            </div>
+
+            <div class="form-group">
+                <label>Puntaje (1 - 5)</label>
+                <InputNumber class="form-input" @bind-Value="modeloProfesor.Puntaje"/>
+            </div>
+
+            <button type="submit" class="btn-guardar">Guardar Profesor</button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string nombreMateria { get; set; }
+    [SupplyParameterFromForm]
+    public FormProfesor modeloProfesor { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        modeloProfesor ??= new();
+    }
+
+    void GuardarProfesor()
+    {
+        Materia materia = new Materia(nombreMateria, "", 0, 0);
+
+        Profesor profesor = new Profesor(
+            modeloProfesor.Nombre,
+            materia,
+            modeloProfesor.Opinion,
+            modeloProfesor.Puntaje
+        );
+
+        Repo.AgregarProfesor(profesor);
+        Nav.NavigateTo($"/profesores/{nombreMateria}");
+    }
+
+    public class FormProfesor
+    {
+        public string Nombre { get; set; } = "";
+        public string Opinion { get; set; } = "";
+        public int Puntaje { get; set; }
+    }
+}
+
+<style>
+
+.form-container{
+    max-width: 600px;
+    margin: auto;
+    padding: 40px;
+}
+
+.form-container h1{
+    font-size: 30px;
+    margin-bottom: 5px;
+}
+
+.subtitulo{
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.form-group label{
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-input{
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+.form-input:focus{
+    outline: none;
+    border-color: #007bff;
+}
+
+.btn-guardar{
+    margin-top: 10px;
+    background: #007bff;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-guardar:hover{
+    background: #0056b3;
+}
+
+</style>

@@ -8,6 +8,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped<Repository.MateriaRepository>();
 builder.Services.AddScoped<Services.MateriaService>();
+builder.Services.AddSingleton<ProfesorRepository>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

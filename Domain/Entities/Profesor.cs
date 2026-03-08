@@ -2,10 +2,10 @@ namespace Domain.Entities;
 
 public class Profesor
 {
-    private string Nombre { get; set;}
-    private Materia Materia { get; set;}
-    private string Opinion { get; set; }
-    private int Puntaje { get; set; }
+    public string Nombre { get; }
+    public Materia Materia { get; }
+    public string Opinion { get; }
+    public int Puntaje { get; }
 
     public Profesor(string nom, Materia mat, string op, int puntaje)
     {
@@ -14,6 +14,4 @@ public class Profesor
         Opinion = op;
         Puntaje = puntaje;
     }
-    
-    
 }

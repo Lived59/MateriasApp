@@ -1,8 +1,130 @@
 @page "/profesores/{nombreMateria}"
+@using Domain.Entities
+@using Repository
+@inject ProfesorRepository Repo
 
-<h3>Profesores de @nombreMateria</h3>
+<div class="pagina-profesores">
+
+    <div class="header">
+        <h1>Profesores de @nombreMateria</h1>
+
+        <NavLink class="btn-agregar"
+                 href="@($"/agregar-profesor/{nombreMateria}")">
+            + Agregar Profesor
+        </NavLink>
+    </div>
+
+    <h2 class="titulo-lista">Profesores registrados</h2>
+
+    @if (profesores.Count == 0)
+    {
+        <p class="sin-profesores">No hay profesores registrados todavía.</p>
+    }
+    else
+    {
+        <div class="lista-profesores">
+
+            @foreach (var profesor in profesores)
+            {
+                <div class="card-profesor">
+
+                    <h3>@profesor.Nombre</h3>
+
+                    <div class="puntaje">
+                        Puntaje: ⭐ @profesor.Puntaje
+                    </div>
+
+                    <p class="opinion">
+                        "@profesor.Opinion"
+                    </p>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
 
 @code{
+
     [Parameter]
     public string nombreMateria { get; set; }
+
+    List<Profesor> profesores = new();
+
+    protected override void OnParametersSet()
+    {
+        profesores = Repo.ObtenerPorMateria(nombreMateria);
+    }
+
 }
+
+
+<style>
+.pagina-profesores{
+max-width: 900px;
+margin: auto;
+padding: 40px;
+}
+
+.header{
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 30px;
+}
+
+.header h1{
+font-size: 32px;
+}
+
+.btn-agregar{
+background: #28a745;
+color: white;
+padding: 12px 18px;
+border-radius: 8px;
+text-decoration: none;
+font-weight: 600;
+}
+
+.btn-agregar:hover{
+background: #218838;
+}
+
+.titulo-lista{
+margin-bottom: 20px;
+}
+
+.lista-profesores{
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+gap: 20px;
+}
+
+.card-profesor{
+background: white;
+padding: 20px;
+border-radius: 12px;
+box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+transition: transform 0.2s;
+}
+
+.card-profesor:hover{
+transform: translateY(-4px);
+}
+
+.puntaje{
+font-weight: 600;
+margin: 10px 0;
+}
+
+.opinion{
+font-style: italic;
+color: #555;
+}
+
+.sin-profesores{
+color: #888;
+}
+</style>
